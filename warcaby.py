@@ -349,8 +349,9 @@ class Man(Piece):
                 if board[self.row+x+x, self.col+y+y] is None:
                     next_move = True
                     self.next_moves(
-                        board, [(self.row+x+x, self.col+y+y)],
-                        [(self.row+x, self.col+y)], move, 1)
+                        board, self.row + x + x, self.col + y + y,
+                        [(self.row + x + x, self.col + y + y)],
+                        [(self.row + x, self.col + y)], move, 1)
 
         for move in capture_moves:
             x = move[0]
@@ -372,13 +373,17 @@ class Man(Piece):
 
             if board[self.row + x + x, self.col + y + y] is None:
                 self.next_moves(
-                    board, [(self.row + x + x, self.col + y + y)],
+                    board, self.row + x + x, self.col + y + y,
+                    [(self.row + x + x, self.col + y + y)],
                     [(self.row + x, self.col + y)], move, 1)
 
-    def next_moves(self, board, possible_moves, captured_pos, previous_pos, captures_num):
+    def next_moves(self, board, row, col, possible_moves,
+                   captured_pos, previous_pos, captures_num):
         possible_moves = copy.deepcopy(possible_moves)
         captured_pos = copy.deepcopy(captured_pos)
+        previous_pos = (previous_pos[0]*-1, previous_pos[1]*-1)
         moves = [(i, j) for j in (-1, 1) for i in (-1, 1) if (i, j) != previous_pos]
+        print(moves)
         recursion = False
         print("Next moves")
 
@@ -386,22 +391,30 @@ class Man(Piece):
             x = move[0]
             y = move[1]
 
-            if self.row+x < 0 or self.row+x >= 8 \
-                    or self.col+y < 0 or self.col+y >= 8:
+            if row+x < 0 or row+x >= 8 \
+                    or col+y < 0 or col+y >= 8:
+                print("test1")
                 continue
 
-            if self.row+x+x < 0 or self.row+x+x >= 8 \
-                    or self.col+y+y < 0 or self.col+y+y >= 8:
+            if row+x+x < 0 or row+x+x >= 8 \
+                    or col+y+y < 0 or col+y+y >= 8:
+                print("test2")
                 continue
 
-            if board[self.row+x, self.col+y] is None:
+            if board[row+x, col+y] is None:
+                print("test3")
                 continue
 
-            if board[self.row + x + x, self.col + y + y] is None:
-                possible_moves.append((self.row+x+x, self.col+y+y))
-                captured_pos.append((self.row+x, self.col+y))
+            print(row+x+x, col+y+y)
+
+            if board[row + x + x, col + y + y] is None:
+                print("test4")
+                possible_moves.append((row+x+x, col+y+y))
+                captured_pos.append((row+x, col+y))
                 recursion = True
-                self.next_moves(board, possible_moves, captured_pos, move, captures_num+1)
+                self.next_moves(
+                    board, row + x + x, col + y + y, possible_moves,
+                    captured_pos, move, captures_num+1)
 
         if not recursion:
             if captures_num > self.captured_num:
