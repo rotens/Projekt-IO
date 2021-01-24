@@ -127,7 +127,7 @@ class GUI(tk.Frame):
                         fill=WHITE, outline=WHITE)
                     self.pieces.append(piece_id)
 
-        print(self.pieces)
+        #print(self.pieces)
 
         # self.board_canvas.create_oval(
         #     100+BOARD_TOP_LEFT_PX + 25, BOARD_TOP_LEFT_PX + 25,
@@ -135,7 +135,7 @@ class GUI(tk.Frame):
         #     outline=RED, width=3)
 
     def select(self, event):
-        print(type(event))
+        #print(type(event))
         if event.x < 50 or event.x > 849:
             return
         if event.y < 50 or event.y > 849:
@@ -144,7 +144,7 @@ class GUI(tk.Frame):
         row = (event.y - 50) // 100
         col = (event.x - 50) // 100
 
-        print(self.board.active)
+        #print(self.board.active)
 
         if self.board.active:
             if self.board[row, col] is not None:
@@ -154,8 +154,10 @@ class GUI(tk.Frame):
                     self.board[row, col].active = True
                     self.board.active_piece = (row, col)
                     self.draw_piece_selection(row, col)
-                    possible_moves = self.board[row, col].get_valid_fields(self.board.board)
-                    print(possible_moves)
+                    self.board[row, col].first_move(self.board)
+                    #print(self.board[row, col].captured_pieces)
+                    print(self.board[row, col].moves_pos)
+
             else:
                 self.remove_piece_selection()
                 self.board.active = False
@@ -169,8 +171,10 @@ class GUI(tk.Frame):
                 self.board.active_piece = (row, col)
                 self.draw_piece_selection(row, col)
                 self.board.active = True
-                possible_moves = self.board[row, col].get_valid_fields(self.board.board)
-                self.draw_field_selection(possible_moves, row, col)
+                self.board[row, col].first_move(self.board)
+                #print(self.board[row, col].captured_pieces)
+                print(self.board[row, col].moves_pos)
+                #self.draw_field_selection(possible_moves, row, col)
                 #self.draw_field_selection()
 
         #print("{}, {}".format(row, col))
@@ -236,7 +240,7 @@ class Board:
                     self.board[row2][col] = Man("light", row2, col, counter)
                     self.light_pieces.append(self.board[row2][col])
                     counter = counter + 1
-        self.print_board()
+        #self.print_board()
         # print(self.light_pieces)
         # print(self.dark_pieces)
 
@@ -304,7 +308,7 @@ class Piece:
 
 
 class Man(Piece):
-    dark = ((-1, 1), (1, 1))
+    dark = ((1, -1), (1, 1))
     light = ((-1, -1), (-1, 1))
 
     def __init__(self, color, row, col, number):
@@ -314,6 +318,7 @@ class Man(Piece):
         self.captured_num = 0
         self.moves_pos = []
         self.captured_pieces = []
+        next_move = False
 
         if self.color == "light":
             moves = self.light
@@ -330,17 +335,19 @@ class Man(Piece):
                     or self.col+y < 0 or self.col+y >= 8:
                 continue
 
-            if board[self.row+x][self.col+y] is None:
-                self.moves_pos.append((self.row+x, self.col+y))
+            if board[self.row+x, self.col+y] is None:
+                if not next_move:
+                    self.moves_pos.append((self.row+x, self.col+y))
             else:
-                if board[self.row+x][self.col+y].color == self.color:
+                if board[self.row+x, self.col+y].color == self.color:
                     continue
 
                 if self.row+x+x < 0 or self.row+x+x >= 8 \
                         or self.col+y+y < 0 or self.col+y+y >= 8:
                     continue
 
-                if board[self.row+x+x][self.col+y+y] is None:
+                if board[self.row+x+x, self.col+y+y] is None:
+                    next_move = True
                     self.next_moves(
                         board, [(self.row+x+x, self.col+y+y)],
                         [(self.row+x, self.col+y)], move, 1)
@@ -349,14 +356,21 @@ class Man(Piece):
             x = move[0]
             y = move[1]
 
-            if board[self.row+x][self.col+y].color == self.color:
-                continue
-
             if self.row + x + x < 0 or self.row + x + x >= 8 \
                     or self.col + y + y < 0 or self.col + y + y >= 8:
                 continue
 
-            if board[self.row + x + x][self.col + y + y] is None:
+            if self.row + x < 0 or self.row + x >= 8 \
+                    or self.col + y < 0 or self.col + y >= 8:
+                continue
+
+            if board[self.row+x, self.col+y] is None:
+                continue
+
+            if board[self.row+x, self.col+y].color == self.color:
+                continue
+
+            if board[self.row + x + x, self.col + y + y] is None:
                 self.next_moves(
                     board, [(self.row + x + x, self.col + y + y)],
                     [(self.row + x, self.col + y)], move, 1)
@@ -365,7 +379,8 @@ class Man(Piece):
         possible_moves = copy.deepcopy(possible_moves)
         captured_pos = copy.deepcopy(captured_pos)
         moves = [(i, j) for j in (-1, 1) for i in (-1, 1) if (i, j) != previous_pos]
-        recursion = 0
+        recursion = False
+        print("Next moves")
 
         for move in moves:
             x = move[0]
@@ -375,17 +390,25 @@ class Man(Piece):
                     or self.col+y < 0 or self.col+y >= 8:
                 continue
 
-            if board[self.row+x][self.col+y] is None:
+            if self.row+x+x < 0 or self.row+x+x >= 8 \
+                    or self.col+y+y < 0 or self.col+y+y >= 8:
                 continue
 
-            if board[self.row + x + x][self.col + y + y] is None:
+            if board[self.row+x, self.col+y] is None:
+                continue
+
+            if board[self.row + x + x, self.col + y + y] is None:
                 possible_moves.append((self.row+x+x, self.col+y+y))
                 captured_pos.append((self.row+x, self.col+y))
-                recursion += 1
+                recursion = True
                 self.next_moves(board, possible_moves, captured_pos, move, captures_num+1)
 
-        if recursion == 0:
-            pass
+        if not recursion:
+            if captures_num > self.captured_num:
+                self.captured_num = captures_num
+                self.moves_pos = [possible_moves, ]
+            elif captures_num == self.captured_num:
+                self.moves_pos.append(possible_moves)
 
 
 class King(Piece):
