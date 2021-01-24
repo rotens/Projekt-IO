@@ -155,7 +155,6 @@ class GUI(tk.Frame):
                     self.board.active_piece = (row, col)
                     self.draw_piece_selection(row, col)
                     self.board[row, col].first_move(self.board)
-                    #print(self.board[row, col].captured_pieces)
                     print("Move {}".format(self.board[row, col].moves_pos))
                     print("Capture {}".format(self.board[row, col].captured_pieces))
 
@@ -173,11 +172,8 @@ class GUI(tk.Frame):
                 self.draw_piece_selection(row, col)
                 self.board.active = True
                 self.board[row, col].first_move(self.board)
-                #print(self.board[row, col].captured_pieces)
                 print("Move {}".format(self.board[row, col].moves_pos))
                 print("Capture {}".format(self.board[row, col].captured_pieces))
-                #self.draw_field_selection(possible_moves, row, col)
-                #self.draw_field_selection()
 
         #print("{}, {}".format(row, col))
 
@@ -242,6 +238,8 @@ class Board:
                     self.board[row2][col] = Man("light", row2, col, counter)
                     self.light_pieces.append(self.board[row2][col])
                     counter = counter + 1
+
+        self.board[5][4] = King("light", 5, 4, 23)
         #self.print_board()
         # print(self.light_pieces)
         # print(self.dark_pieces)
@@ -331,8 +329,7 @@ class Man(Piece):
             capture_moves = self.light
 
         for move in moves:
-            x = move[0]
-            y = move[1]
+            x, y = move
 
             if self.row+x < 0 or self.row+x >= 8 \
                     or self.col+y < 0 or self.col+y >= 8:
@@ -392,8 +389,7 @@ class Man(Piece):
         recursion = False
 
         for move in moves:
-            x = move[0]
-            y = move[1]
+            x, y = move
 
             if row+x < 0 or row+x >= 8 \
                     or col+y < 0 or col+y >= 8:
@@ -436,14 +432,64 @@ class King(Piece):
         self.captured_num = 0
         self.moves_pos = []
         self.captured_pieces = []
+        all_possible_moves = []
         next_move = False
 
         for move in self.moves:
-            pass
+            x, y = move
+            row = self.row
+            col = self.col
+            possible_moves = []
+
+            i = 1
+            while True:
+                if row + i*x < 0 or row + i*x >= 8 \
+                        or col + i*y < 0 or col + i*y >= 8:
+                    break
+
+                if board[row + i*x, col + i*y] is None:
+                    if not next_move:
+                        possible_moves.append((row + i*x, col + i*y))
+                else:
+                    if board[row + i*x, col + i*y].color == self.color:
+                        break
+
+                    if row + i*x + x < 0 or row + i*x + x >= 8 \
+                            or col + i*y + y < 0 or col + i*y + y >= 8:
+                        break
+
+                    j = i
+                    while True:
+                        if row + j * x + x < 0 or row + j * x + x >= 8 \
+                                or col + i * y + y < 0 or col + i * y + y >= 8:
+                            break
+
+                        if board[row + j*x + x, col + j*y + y] is not None:
+                            break
+
+                        next_move = True
+                        self.next_moves(
+                            board, row + j*x + x, col + j*y + y,
+                            [(row + j*x + x, col + j*y + y)],
+                            [(row + j*x, col + j*y)], move, 1)
+                        j += 1
+                i += 1
+
+            if possible_moves:
+                all_possible_moves.append(possible_moves)
+
+        if not next_move:
+            self.moves_pos = all_possible_moves
 
     def next_moves(self, board, row, col, possible_moves,
                    captured_pos, previous_pos, captures_num):
-        pass
+        #previous_pos = (previous_pos[0] * -1, previous_pos[1] * -1)
+        previous_pos = tuple(map(lambda x: x*-1, previous_pos))
+        moves = [(i, j) for j in (-1, 1) for i in (-1, 1) if (i, j) != previous_pos]
+        recursion = False
+
+        for move in moves:
+            x, y = move
 
 
 if __name__ == "__main__":
