@@ -156,7 +156,8 @@ class GUI(tk.Frame):
                     self.draw_piece_selection(row, col)
                     self.board[row, col].first_move(self.board)
                     #print(self.board[row, col].captured_pieces)
-                    print(self.board[row, col].moves_pos)
+                    print("Move {}".format(self.board[row, col].moves_pos))
+                    print("Capture {}".format(self.board[row, col].captured_pieces))
 
             else:
                 self.remove_piece_selection()
@@ -173,7 +174,8 @@ class GUI(tk.Frame):
                 self.board.active = True
                 self.board[row, col].first_move(self.board)
                 #print(self.board[row, col].captured_pieces)
-                print(self.board[row, col].moves_pos)
+                print("Move {}".format(self.board[row, col].moves_pos))
+                print("Capture {}".format(self.board[row, col].captured_pieces))
                 #self.draw_field_selection(possible_moves, row, col)
                 #self.draw_field_selection()
 
@@ -318,6 +320,7 @@ class Man(Piece):
         self.captured_num = 0
         self.moves_pos = []
         self.captured_pieces = []
+        possible_moves = []
         next_move = False
 
         if self.color == "light":
@@ -337,7 +340,7 @@ class Man(Piece):
 
             if board[self.row+x, self.col+y] is None:
                 if not next_move:
-                    self.moves_pos.append((self.row+x, self.col+y))
+                    possible_moves.append((self.row+x, self.col+y))
             else:
                 if board[self.row+x, self.col+y].color == self.color:
                     continue
@@ -352,6 +355,9 @@ class Man(Piece):
                         board, self.row + x + x, self.col + y + y,
                         [(self.row + x + x, self.col + y + y)],
                         [(self.row + x, self.col + y)], move, 1)
+
+        if not next_move:
+            self.moves_pos.append(possible_moves)
 
         for move in capture_moves:
             x = move[0]
@@ -379,13 +385,11 @@ class Man(Piece):
 
     def next_moves(self, board, row, col, possible_moves,
                    captured_pos, previous_pos, captures_num):
-        possible_moves = copy.deepcopy(possible_moves)
-        captured_pos = copy.deepcopy(captured_pos)
+        # possible_moves = copy.deepcopy(possible_moves)
+        # captured_pos = copy.deepcopy(captured_pos)
         previous_pos = (previous_pos[0]*-1, previous_pos[1]*-1)
         moves = [(i, j) for j in (-1, 1) for i in (-1, 1) if (i, j) != previous_pos]
-        print(moves)
         recursion = False
-        print("Next moves")
 
         for move in moves:
             x = move[0]
@@ -393,40 +397,53 @@ class Man(Piece):
 
             if row+x < 0 or row+x >= 8 \
                     or col+y < 0 or col+y >= 8:
-                print("test1")
                 continue
 
             if row+x+x < 0 or row+x+x >= 8 \
                     or col+y+y < 0 or col+y+y >= 8:
-                print("test2")
                 continue
 
             if board[row+x, col+y] is None:
-                print("test3")
                 continue
 
-            print(row+x+x, col+y+y)
-
             if board[row + x + x, col + y + y] is None:
-                print("test4")
-                possible_moves.append((row+x+x, col+y+y))
-                captured_pos.append((row+x, col+y))
+                new_moves = copy.deepcopy(possible_moves)
+                new_captures = copy.deepcopy(captured_pos)
+                new_moves.append((row+x+x, col+y+y))
+                new_captures.append((row+x, col+y))
                 recursion = True
                 self.next_moves(
-                    board, row + x + x, col + y + y, possible_moves,
-                    captured_pos, move, captures_num+1)
+                    board, row + x + x, col + y + y, new_moves,
+                    new_captures, move, captures_num+1)
 
         if not recursion:
             if captures_num > self.captured_num:
                 self.captured_num = captures_num
                 self.moves_pos = [possible_moves, ]
+                self.captured_pieces = [captured_pos, ]
             elif captures_num == self.captured_num:
                 self.moves_pos.append(possible_moves)
+                self.captured_pieces.append(captured_pos)
 
 
 class King(Piece):
+    moves = ((1, -1), (1, 1), (-1, -1), (-1, 1))
+
     def __init__(self, color, row, col, number):
         super().__init__(color, row, col, number)
+
+    def first_move(self, board):
+        self.captured_num = 0
+        self.moves_pos = []
+        self.captured_pieces = []
+        next_move = False
+
+        for move in self.moves:
+            pass
+
+    def next_moves(self, board, row, col, possible_moves,
+                   captured_pos, previous_pos, captures_num):
+        pass
 
 
 if __name__ == "__main__":
