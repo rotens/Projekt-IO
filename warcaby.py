@@ -78,7 +78,9 @@ class GUI(tk.Frame):
 
         self.board_canvas.create_rectangle(0, CANVAS_HEIGHT_PX-1, CANVAS_WIDTH_PX-1, CANVAS_HEIGHT_PX-1)
 
-        self.bottom_frame = tk.Frame(master=self, width=CANVAS_WIDTH_PX, height=BOTTOM_FRAME_HEIGHT_PX, bg=DARK_FIELD)
+        self.bottom_frame = tk.Frame(
+            master=self, width=CANVAS_WIDTH_PX, height=BOTTOM_FRAME_HEIGHT_PX,
+            bg=DARK_FIELD)
         self.bottom_frame.pack()
 
         self.btn_start_game = tk.Button(
@@ -87,11 +89,13 @@ class GUI(tk.Frame):
         self.btn_start_game.place(x=110, y=8)
 
         self.dark_counter = tk.Label(
-            master=self.bottom_frame, text="20", font=("", COUNTER_SIZE_PX), fg=BLACK, bg=DARK_FIELD)
+            master=self.bottom_frame, text="20", font=("", COUNTER_SIZE_PX),
+            fg=BLACK, bg=DARK_FIELD)
         self.dark_counter.place(x=440, y=5)
 
         self.light_counter = tk.Label(
-            master=self.bottom_frame, text="20", font=("", COUNTER_SIZE_PX), fg=WHITE, bg=DARK_FIELD)
+            master=self.bottom_frame, text="20", font=("", COUNTER_SIZE_PX),
+            fg=WHITE, bg=DARK_FIELD)
         self.light_counter.place(x=380, y=5)
 
         self.game_info_text = tk.Label(
@@ -99,7 +103,7 @@ class GUI(tk.Frame):
             font=("", COUNTER_SIZE_PX), fg=LIGHT_FIELD, bg=DARK_FIELD)
         self.game_info_text.place(x=550, y=5)
         self.game_info_color = tk.Label(
-            master=self.bottom_frame, text="białych",
+            master=self.bottom_frame, text="",
             font=("", COUNTER_SIZE_PX), fg=WHITE, bg=DARK_FIELD)
         self.game_info_color.place(x=715, y=5)
 
@@ -113,16 +117,20 @@ class GUI(tk.Frame):
             for col in range(8):
                 if col % 2 == ((row + 1) % 2):
                     piece_id = self.board_canvas.create_oval(
-                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 19,  BOARD_TOP_LEFT_PX + row * FIELD_SIZE + 19,
-                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 80, BOARD_TOP_LEFT_PX + row * FIELD_SIZE + 80,
+                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 19,
+                        BOARD_TOP_LEFT_PX + row * FIELD_SIZE + 19,
+                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 80,
+                        BOARD_TOP_LEFT_PX + row * FIELD_SIZE + 80,
                         fill=BLACK, outline=BLACK)
                     self.pieces.append(piece_id)
             for col in range(8):
                 row2 = 7 - row
                 if col % 2 == ((row2 + 1) % 2):
                     piece_id = self.board_canvas.create_oval(
-                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 19, BOARD_TOP_LEFT_PX + row2 * FIELD_SIZE + 19,
-                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 80, BOARD_TOP_LEFT_PX + row2 * FIELD_SIZE + 80,
+                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 19,
+                        BOARD_TOP_LEFT_PX + row2 * FIELD_SIZE + 19,
+                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 80,
+                        BOARD_TOP_LEFT_PX + row2 * FIELD_SIZE + 80,
                         fill=WHITE, outline=WHITE)
                     self.pieces.append(piece_id)
 
@@ -138,40 +146,6 @@ class GUI(tk.Frame):
         row = (event.y - 50) // 100
         col = (event.x - 50) // 100
 
-        #print(self.board.active)
-        # if self.board[row, col] is not None:
-        #     if self.board[row, col].blocked:
-        #         return
-        #
-        # if self.board.active:
-        #     if self.board[row, col] is not None:
-        #         if not self.board[row, col].active:
-        #             self.board.deactivate_current_piece()
-        #             self.remove_piece_selection()
-        #             self.board[row, col].active = True
-        #             self.board.active_piece = (row, col)
-        #             self.draw_piece_selection(row, col)
-        #             self.board[row, col].first_move(self.board)
-        #             print("Move {}".format(self.board[row, col].moves_pos))
-        #             print("Capture {}".format(self.board[row, col].captured_pieces))
-        #
-        #     else:
-        #         self.remove_piece_selection()
-        #         self.board.active = False
-        #         self.board.move_piece(row, col)
-        #         index = self.board[row, col].number
-        #         self.move_piece(self.pieces[index], self.board.active_piece, row, col)
-        #
-        # else:
-        #     if self.board[row, col] is not None:
-        #         self.board[row, col].active = True
-        #         self.board.active_piece = (row, col)
-        #         self.draw_piece_selection(row, col)
-        #         self.board.active = True
-        #         self.board[row, col].first_move(self.board)
-        #         print("Move {}".format(self.board[row, col].moves_pos))
-        #         print("Capture {}".format(self.board[row, col].captured_pieces))
-
         if self.board[row, col] is not None:
             if self.board[row, col].blocked:
                 return
@@ -185,24 +159,54 @@ class GUI(tk.Frame):
             self.board.active = True
             self.board[row, col].active = True
             self.board.active_piece = (row, col)
-            #self.draw_piece_selection(row, col)
+            self.draw_piece_selection(row, col)
             self.selection_process(row, col)
             print("Move {}".format(self.board[row, col].moves_pos))
             print("Capture {}".format(self.board[row, col].captured_pieces))
 
         else:
-            self.remove_piece_selection()
-            self.remove_field_selection()
-            self.board.active = False
-            #self.draw_field_selection(self, row, col)
-            self.board.move_piece(row, col)
-            index = self.board[row, col].number
-            self.move_piece(self.pieces[index], self.board.active_piece, row, col)
+            self.move_process(row, col)
 
     def selection_process(self, row, col):
         if self.board.max_moves == 0:
-            moves_pos = self.board[row, col].moves_pos
-            self.draw_field_selection(moves_pos)
+            self.board.active_fields = self.board[row, col].moves_pos
+            self.draw_field_selection()
+        else:
+            pass
+
+    def move_process(self, row, col):
+        if not self.board.active:
+            return
+
+        if self.board.max_moves == 0:
+            x, y = self.board.active_piece
+
+            for lst in self.board[x, y].moves_pos:
+                if (row, col) in lst:
+                    self.remove_piece_selection()
+                    self.remove_field_selection()
+                    self.board.active_fields = []
+                    self.field_selections = []
+                    self.board.active = False
+
+                    self.board.move_piece(row, col)
+
+                    index = self.board[row, col].number
+                    self.move_piece(self.pieces[index], self.board.active_piece, row, col)
+                    self.board.active_piece = ()
+                    self.board.change_color()
+                    self.game_info()
+                    self.board.print_board()
+
+                    # for i in self.board.board:
+                    #     for j in i:
+                    #         if j is not None:
+                    #             print("{} ".format(j.blocked), end='')
+                    #         else:
+                    #             print("0", end='')
+                    #     print()
+
+
         else:
             pass
 
@@ -217,8 +221,8 @@ class GUI(tk.Frame):
     def remove_piece_selection(self):
         self.board_canvas.delete(self.piece_selection)
 
-    def draw_field_selection(self, moves_pos):
-        for lst in moves_pos:
+    def draw_field_selection(self):
+        for lst in self.board.active_fields:
             for pos in lst:
                 row, col = pos
                 self.field_selections.append(
@@ -258,6 +262,15 @@ class GUI(tk.Frame):
         self.board = Board()
         self._draw_pieces()
         self.bind_event()
+        self.game_info()
+
+    def game_info(self):
+        if self.board.current_color == "light":
+            self.game_info_color["text"] = "białych"
+            self.game_info_color['fg'] = WHITE
+        else:
+            self.game_info_color["text"] = "czarnych"
+            self.game_info_color['fg'] = BLACK
 
 
 class Board:
@@ -321,6 +334,24 @@ class Board:
         self.board[target_row][target_col] = copy.deepcopy(self.board[row][col])
         self.board[row][col] = None
 
+        if self.current_color == "light":
+            pieces = self.light_pieces
+        else:
+            pieces = self.dark_pieces
+
+        for i, _ in enumerate(pieces):
+            if pieces[i].number == self.board[target_row][target_col].number:
+                pieces[i] = self.board[target_row][target_col]
+
+    def unblock_pieces(self):
+        if self.current_color == "light":
+            pieces = self.light_pieces
+        else:
+            pieces = self.dark_pieces
+
+        for piece in pieces:
+            piece.blocked = False
+
     def block_pieces(self):
         if self.current_color == "light":
             current_pieces = self.light_pieces
@@ -346,6 +377,18 @@ class Board:
                 self.max_moves = piece.captured_num
 
         self.block_pieces()
+
+    def change_color(self):
+        if self.current_color == "light":
+            self.current_color = "dark"
+        else:
+            self.current_color = "light"
+
+        self.unblock_pieces()
+        self.possible_captures()
+
+    def game_state(self):
+        pass
 
     def print_board(self):
         for row in range(ROWS):
@@ -377,9 +420,6 @@ class Piece:
         self.col = col
 
     def first_move(self, board):
-        pass
-
-    def get_valid_fields(self, board):
         pass
 
 
@@ -459,7 +499,6 @@ class Man(Piece):
                     board, self.row + x + x, self.col + y + y,
                     [(self.row + x + x, self.col + y + y)],
                     [(self.row + x, self.col + y)], move, 1)
-
 
     def next_moves(self, board, row, col, possible_moves,
                    captured_pos, previous_pos, captures_num):
