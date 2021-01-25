@@ -41,13 +41,11 @@ class GUI(tk.Frame):
 
     def _draw_window(self):
         self['bg'] = LIGHT_FIELD
-
         self.board_canvas = tk.Canvas(
             master=self, width=CANVAS_HEIGHT_PX, height=CANVAS_WIDTH_PX,
             background=DARK_FIELD, borderwidth=0, highlightthickness=0)
-        self.board_canvas.bind('<ButtonPress-1>', self.select)
         self.board_canvas.pack()
-        self.bind_event()
+
         self.board_canvas.create_rectangle(49, 49, 850, 850)
 
         for i in range(8):
@@ -85,7 +83,7 @@ class GUI(tk.Frame):
 
         self.btn_start_game = tk.Button(
             master=self.bottom_frame, text="Rozpocznij grę", bg=BUTTON,
-            fg=WHITE, font=("", BUTTON_TEXT_SIZE_PX))
+            fg=WHITE, font=("", BUTTON_TEXT_SIZE_PX), command=self.start_game)
         self.btn_start_game.place(x=110, y=8)
 
         self.dark_counter = tk.Label(
@@ -109,6 +107,7 @@ class GUI(tk.Frame):
         if self.pieces:
             for piece in self.pieces:
                 self.board_canvas.delete(piece)
+            self.pieces = []
 
         for row in range(3):
             for col in range(8):
@@ -207,6 +206,18 @@ class GUI(tk.Frame):
     def create_king(self):
         pass
 
+    def remove_elements(self):
+        pass
+
+    def start_game(self):
+        self.remove_piece_selection()
+        self.remove_field_selection()
+        self.piece_selection = None
+        self.field_selections = []
+        self.board = Board()
+        self._draw_pieces()
+        self.bind_event()
+
 
 class Board:
     def __init__(self):
@@ -238,7 +249,7 @@ class Board:
                     self.light_pieces.append(self.board[row2][col])
                     counter = counter + 1
 
-        self.board[5][4] = King("light", 5, 4, 22)
+        #self.board[5][4] = King("light", 5, 4, 22)
         #self.print_board()
         # print(self.light_pieces)
         # print(self.dark_pieces)
@@ -259,16 +270,28 @@ class Board:
         self.board[row][col] = None
 
     def block_pieces(self):
-        pieces = self.light_pieces if self.current_color == "light" else self.dark_pieces
+        if self.current_color == "light":
+            current_pieces = self.light_pieces
+            opposite_pieces = self.dark_pieces
+        else:
+            current_pieces = self.dark_pieces
+            opposite_pieces = self.light_pieces
 
-        for piece in pieces:
+        for piece in opposite_pieces:
             piece.blocked = True
+
+        for piece in current_pieces:
+            if piece.captured_num < self.max_moves:
+                piece.blocked = True
 
     def possible_captures(self):
         pieces = self.light_pieces if self.current_color == "light" else self.dark_pieces
 
         for piece in pieces:
-            piece.get_valid_fields(self.board, first_move=True)
+            piece.first_move(self)
+
+            if piece.captured_num > self.max_moves:
+                self.max_moves = piece.captured_num
 
     def print_board(self):
         for row in range(ROWS):
@@ -457,7 +480,7 @@ class King(Piece):
 
                     if board[row + i*x + x, col + i*y + y] is not None:
                         break
-                    print("test")
+
                     j = i
                     while True:
                         if row + j*x + x < 0 or row + j*x + x >= 8 \
@@ -500,6 +523,12 @@ class King(Piece):
                     i += 1
                     continue
 
+                if board[row + i*x, col + i*y].color == self.color:
+                    break
+
+                if board[row + i*x + x, col + i*y + y] is not None:
+                    break
+
                 j = i
                 while True:
                     if row + j*x + x < 0 or row + j*x + x >= 8 \
@@ -530,6 +559,7 @@ class King(Piece):
             elif captures_num == self.captured_num:
                 self.moves_pos.append(possible_moves)
                 self.captured_pieces.append(captured_pos)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
