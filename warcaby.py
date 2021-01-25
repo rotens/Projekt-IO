@@ -175,7 +175,6 @@ class GUI(tk.Frame):
                 print("Move {}".format(self.board[row, col].moves_pos))
                 print("Capture {}".format(self.board[row, col].captured_pieces))
 
-        #print("{}, {}".format(row, col))
 
     def draw_piece_selection(self, row, col):
         self.piece_selection = self.board_canvas.create_oval(
@@ -239,7 +238,7 @@ class Board:
                     self.light_pieces.append(self.board[row2][col])
                     counter = counter + 1
 
-        self.board[5][4] = King("light", 5, 4, 23)
+        self.board[5][4] = King("light", 5, 4, 22)
         #self.print_board()
         # print(self.light_pieces)
         # print(self.dark_pieces)
@@ -382,9 +381,7 @@ class Man(Piece):
 
     def next_moves(self, board, row, col, possible_moves,
                    captured_pos, previous_pos, captures_num):
-        # possible_moves = copy.deepcopy(possible_moves)
-        # captured_pos = copy.deepcopy(captured_pos)
-        previous_pos = (previous_pos[0]*-1, previous_pos[1]*-1)
+        previous_pos = tuple(map(lambda x: x*-1, previous_pos))
         moves = [(i, j) for j in (-1, 1) for i in (-1, 1) if (i, j) != previous_pos]
         recursion = False
 
@@ -458,10 +455,13 @@ class King(Piece):
                             or col + i*y + y < 0 or col + i*y + y >= 8:
                         break
 
+                    if board[row + i*x + x, col + i*y + y] is not None:
+                        break
+
                     j = i
                     while True:
-                        if row + j * x + x < 0 or row + j * x + x >= 8 \
-                                or col + i * y + y < 0 or col + i * y + y >= 8:
+                        if row + j*x + x < 0 or row + j*x + x >= 8 \
+                                or col + i*y + y < 0 or col + i*y + y >= 8:
                             break
 
                         if board[row + j*x + x, col + j*y + y] is not None:
@@ -471,7 +471,7 @@ class King(Piece):
                         self.next_moves(
                             board, row + j*x + x, col + j*y + y,
                             [(row + j*x + x, col + j*y + y)],
-                            [(row + j*x, col + j*y)], move, 1)
+                            [(row + i*x, col + i*y)], move, 1)
                         j += 1
                 i += 1
 
@@ -483,14 +483,54 @@ class King(Piece):
 
     def next_moves(self, board, row, col, possible_moves,
                    captured_pos, previous_pos, captures_num):
-        #previous_pos = (previous_pos[0] * -1, previous_pos[1] * -1)
         previous_pos = tuple(map(lambda x: x*-1, previous_pos))
         moves = [(i, j) for j in (-1, 1) for i in (-1, 1) if (i, j) != previous_pos]
         recursion = False
 
+
         for move in moves:
             x, y = move
 
+            i = 1
+            while True:
+                if row + i*x < 0 or row + i*x >= 8 \
+                        or col + i * y < 0 or col + i * y >= 8:
+                    break
+
+                if board[row + i*x, col + i*y] is None:
+                    i += 1
+                    continue
+                #print("next_move")
+                j = i
+                while True:
+                    if row + j*x + x < 0 or row + j*x + x >= 8 \
+                            or col + j*y + y < 0 or col + j*y + y >= 8:
+                        break
+
+                    if board[row + j*x + x, col + j*y + y] is not None:
+                        break
+
+                    recursion = True
+                    new_moves = copy.deepcopy(possible_moves)
+                    new_captures = copy.deepcopy(captured_pos)
+                    new_moves.append((row + j*x + x, col + j*y + y))
+                    new_captures.append((row + i*x, col + i*y))
+                    print(captures_num)
+                    self.next_moves(
+                        board, row + j*x + x, col + j*y + y,
+                        new_moves, new_captures, move, captures_num+1)
+
+                    j += 1
+                i += 1
+
+        if not recursion:
+            if captures_num > self.captured_num:
+                self.captured_num = captures_num
+                self.moves_pos = [possible_moves, ]
+                self.captured_pieces = [captured_pos, ]
+            elif captures_num == self.captured_num:
+                self.moves_pos.append(possible_moves)
+                self.captured_pieces.append(captured_pos)
 
 if __name__ == "__main__":
     root = tk.Tk()
