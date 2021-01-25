@@ -34,7 +34,7 @@ class GUI(tk.Frame):
         self.pieces = []
         self.piece_selection = None
         self.field_selections = []
-        self.board = Board()
+        self.board = None
         self.pack()
         self._draw_window()
         self._draw_pieces()
@@ -128,11 +128,6 @@ class GUI(tk.Frame):
 
         #print(self.pieces)
 
-        # self.board_canvas.create_oval(
-        #     100+BOARD_TOP_LEFT_PX + 25, BOARD_TOP_LEFT_PX + 25,
-        #     100+BOARD_TOP_LEFT_PX + 74,  BOARD_TOP_LEFT_PX + 74,
-        #     outline=RED, width=3)
-
     def select(self, event):
         #print(type(event))
         if event.x < 50 or event.x > 849:
@@ -144,36 +139,72 @@ class GUI(tk.Frame):
         col = (event.x - 50) // 100
 
         #print(self.board.active)
+        # if self.board[row, col] is not None:
+        #     if self.board[row, col].blocked:
+        #         return
+        #
+        # if self.board.active:
+        #     if self.board[row, col] is not None:
+        #         if not self.board[row, col].active:
+        #             self.board.deactivate_current_piece()
+        #             self.remove_piece_selection()
+        #             self.board[row, col].active = True
+        #             self.board.active_piece = (row, col)
+        #             self.draw_piece_selection(row, col)
+        #             self.board[row, col].first_move(self.board)
+        #             print("Move {}".format(self.board[row, col].moves_pos))
+        #             print("Capture {}".format(self.board[row, col].captured_pieces))
+        #
+        #     else:
+        #         self.remove_piece_selection()
+        #         self.board.active = False
+        #         self.board.move_piece(row, col)
+        #         index = self.board[row, col].number
+        #         self.move_piece(self.pieces[index], self.board.active_piece, row, col)
+        #
+        # else:
+        #     if self.board[row, col] is not None:
+        #         self.board[row, col].active = True
+        #         self.board.active_piece = (row, col)
+        #         self.draw_piece_selection(row, col)
+        #         self.board.active = True
+        #         self.board[row, col].first_move(self.board)
+        #         print("Move {}".format(self.board[row, col].moves_pos))
+        #         print("Capture {}".format(self.board[row, col].captured_pieces))
 
-        if self.board.active:
-            if self.board[row, col] is not None:
+        if self.board[row, col] is not None:
+            if self.board[row, col].blocked:
+                return
+
+            if self.board.active:
                 if not self.board[row, col].active:
                     self.board.deactivate_current_piece()
                     self.remove_piece_selection()
-                    self.board[row, col].active = True
-                    self.board.active_piece = (row, col)
-                    self.draw_piece_selection(row, col)
-                    self.board[row, col].first_move(self.board)
-                    print("Move {}".format(self.board[row, col].moves_pos))
-                    print("Capture {}".format(self.board[row, col].captured_pieces))
+                    self.remove_field_selection()
 
-            else:
-                self.remove_piece_selection()
-                self.board.active = False
-                self.board.move_piece(row, col)
-                index = self.board[row, col].number
-                self.move_piece(self.pieces[index], self.board.active_piece, row, col)
+            self.board.active = True
+            self.board[row, col].active = True
+            self.board.active_piece = (row, col)
+            #self.draw_piece_selection(row, col)
+            self.selection_process(row, col)
+            print("Move {}".format(self.board[row, col].moves_pos))
+            print("Capture {}".format(self.board[row, col].captured_pieces))
 
         else:
-            if self.board[row, col] is not None:
-                self.board[row, col].active = True
-                self.board.active_piece = (row, col)
-                self.draw_piece_selection(row, col)
-                self.board.active = True
-                self.board[row, col].first_move(self.board)
-                print("Move {}".format(self.board[row, col].moves_pos))
-                print("Capture {}".format(self.board[row, col].captured_pieces))
+            self.remove_piece_selection()
+            self.remove_field_selection()
+            self.board.active = False
+            #self.draw_field_selection(self, row, col)
+            self.board.move_piece(row, col)
+            index = self.board[row, col].number
+            self.move_piece(self.pieces[index], self.board.active_piece, row, col)
 
+    def selection_process(self, row, col):
+        if self.board.max_moves == 0:
+            moves_pos = self.board[row, col].moves_pos
+            self.draw_field_selection(moves_pos)
+        else:
+            pass
 
     def draw_piece_selection(self, row, col):
         self.piece_selection = self.board_canvas.create_oval(
@@ -186,11 +217,21 @@ class GUI(tk.Frame):
     def remove_piece_selection(self):
         self.board_canvas.delete(self.piece_selection)
 
-    def draw_field_selection(self, possible_moves, row, col):
-        pass
+    def draw_field_selection(self, moves_pos):
+        for lst in moves_pos:
+            for pos in lst:
+                row, col = pos
+                self.field_selections.append(
+                    self.board_canvas.create_rectangle(
+                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 10,
+                        BOARD_TOP_LEFT_PX + row * FIELD_SIZE + 10,
+                        BOARD_TOP_LEFT_PX + col * FIELD_SIZE + 89,
+                        BOARD_TOP_LEFT_PX + row * FIELD_SIZE + 89,
+                        outline=WHITE, width=3))
 
     def remove_field_selection(self):
-        pass
+        for selection in self.field_selections:
+            self.board_canvas.delete(selection)
 
     def bind_event(self):
         self.board_canvas.bind('<ButtonPress-1>', self.select)
@@ -229,10 +270,15 @@ class Board:
         self.dark_pieces = []
         self.max_moves = 0
         self.current_color = "light"
-        self.create_board()
+        self.init_board()
 
     def __getitem__(self, pos):
         return self.board[pos[0]][pos[1]]
+
+    def init_board(self):
+        self.create_board()
+        self.possible_captures()
+        #self.block_pieces()
 
     def create_board(self):
         counter = 0
@@ -253,6 +299,12 @@ class Board:
         #self.print_board()
         # print(self.light_pieces)
         # print(self.dark_pieces)
+
+    # def move_process(self, row, col):
+    #     if self.max_moves > 0:
+    #         pass
+    #     else:
+    #         return self.board[row, col].moves_pos
 
     def deactivate_current_piece(self):
         row = self.active_piece[0]
@@ -292,6 +344,8 @@ class Board:
 
             if piece.captured_num > self.max_moves:
                 self.max_moves = piece.captured_num
+
+        self.block_pieces()
 
     def print_board(self):
         for row in range(ROWS):
@@ -378,6 +432,9 @@ class Man(Piece):
         if not next_move:
             self.moves_pos.append(possible_moves)
 
+        if not possible_moves:
+            self.captured_num = -1
+
         for move in capture_moves:
             x = move[0]
             y = move[1]
@@ -397,10 +454,12 @@ class Man(Piece):
                 continue
 
             if board[self.row + x + x, self.col + y + y] is None:
+                next_move = True
                 self.next_moves(
                     board, self.row + x + x, self.col + y + y,
                     [(self.row + x + x, self.col + y + y)],
                     [(self.row + x, self.col + y)], move, 1)
+
 
     def next_moves(self, board, row, col, possible_moves,
                    captured_pos, previous_pos, captures_num):
@@ -420,6 +479,9 @@ class Man(Piece):
                 continue
 
             if board[row+x, col+y] is None:
+                continue
+
+            if board[row + x, col + y].color == self.color:
                 continue
 
             if board[row + x + x, col + y + y] is None:
