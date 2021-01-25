@@ -457,11 +457,11 @@ class King(Piece):
 
                     if board[row + i*x + x, col + i*y + y] is not None:
                         break
-
+                    print("test")
                     j = i
                     while True:
                         if row + j*x + x < 0 or row + j*x + x >= 8 \
-                                or col + i*y + y < 0 or col + i*y + y >= 8:
+                                or col + j*y + y < 0 or col + j*y + y >= 8:
                             break
 
                         if board[row + j*x + x, col + j*y + y] is not None:
@@ -487,7 +487,6 @@ class King(Piece):
         moves = [(i, j) for j in (-1, 1) for i in (-1, 1) if (i, j) != previous_pos]
         recursion = False
 
-
         for move in moves:
             x, y = move
 
@@ -500,7 +499,7 @@ class King(Piece):
                 if board[row + i*x, col + i*y] is None:
                     i += 1
                     continue
-                #print("next_move")
+
                 j = i
                 while True:
                     if row + j*x + x < 0 or row + j*x + x >= 8 \
@@ -515,7 +514,7 @@ class King(Piece):
                     new_captures = copy.deepcopy(captured_pos)
                     new_moves.append((row + j*x + x, col + j*y + y))
                     new_captures.append((row + i*x, col + i*y))
-                    print(captures_num)
+
                     self.next_moves(
                         board, row + j*x + x, col + j*y + y,
                         new_moves, new_captures, move, captures_num+1)
