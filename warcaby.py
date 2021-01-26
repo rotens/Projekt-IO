@@ -35,6 +35,7 @@ class GUI(tk.Frame):
         self.piece_selection = None
         self.field_selections = []
         self.board = None
+        self.indices = []
         self.pack()
         self._draw_window()
         self._draw_pieces()
@@ -123,6 +124,7 @@ class GUI(tk.Frame):
                         BOARD_TOP_LEFT_PX + row * FIELD_SIZE + 80,
                         fill=BLACK, outline=BLACK)
                     self.pieces.append(piece_id)
+
             for col in range(8):
                 row2 = 7 - row
                 if col % 2 == ((row2 + 1) % 2):
@@ -171,8 +173,12 @@ class GUI(tk.Frame):
             self.board.active_fields = self.board[row, col].moves_pos
             self.draw_field_selection()
         else:
+            index = self.board[row, col].captured_num - self.board.max_moves
+
             for move in self.board[row, col].moves_pos:
-                pass
+                self.board.active_fields.append([move[index]])
+
+            self.draw_field_selection()
 
     def move_process(self, row, col):
         if not self.board.active:
@@ -190,16 +196,41 @@ class GUI(tk.Frame):
                     self.board.active = False
 
                     self.board.move_piece(row, col)
-
                     index = self.board[row, col].number
                     self.move_piece(self.pieces[index], self.board.active_piece, row, col)
+
                     self.board.active_piece = ()
                     self.board.change_color()
                     self.game_info()
                     #self.board.print_board()
 
         else:
-            pass
+            x, y = self.board.active_piece
+            index = self.board[x, y].captured_num - self.board.max_moves
+
+            for i, lst in enumerate(self.board[x, y].moves_pos):
+                if lst[index] == (row, col):
+                    self.indices.append(i)
+
+            if self.indices:
+                self.remove_piece_selection()
+                self.remove_field_selection()
+                self.board.active_fields = []
+                self.field_selections = []
+                self.board.active = False
+
+                self.board.move_piece(row, col)
+                index = self.board[row, col].number
+                self.move_piece(self.pieces[index], self.board.active_piece, row, col)
+
+                self.board.max_moves -= 1
+
+            if self.board.max_moves == 0:
+                self.board.active_piece = ()
+                self.board.change_color()
+                self.game_info()
+
+
 
     def draw_piece_selection(self, row, col):
         self.piece_selection = self.board_canvas.create_oval(
@@ -268,8 +299,8 @@ class Board:
     def __init__(self):
         self.board = [[None for _ in range(COLS)] for _ in range(ROWS)]
         self.active = False
-        self.active_piece = ()
-        self.active_fields = ()
+        self.active_piece = []
+        self.active_fields = []
         self.light_pieces = []
         self.dark_pieces = []
         self.max_moves = 0
@@ -540,7 +571,7 @@ class King(Piece):
         super().__init__(color, row, col, number)
 
     def first_move(self, board):
-        self.captured_num = 0
+        self.captured_num = -1
         self.moves_pos = []
         self.captured_pieces = []
         all_possible_moves = []
