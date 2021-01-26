@@ -134,10 +134,7 @@ class GUI(tk.Frame):
                         fill=WHITE, outline=WHITE)
                     self.pieces.append(piece_id)
 
-        #print(self.pieces)
-
     def select(self, event):
-        #print(type(event))
         if event.x < 50 or event.x > 849:
             return
         if event.y < 50 or event.y > 849:
@@ -147,6 +144,8 @@ class GUI(tk.Frame):
         col = (event.x - 50) // 100
 
         if self.board[row, col] is not None:
+            # print(self.board[row, col].moves_pos)
+            # print(self.board[row, col].captured_num)
             if self.board[row, col].blocked:
                 return
 
@@ -172,7 +171,8 @@ class GUI(tk.Frame):
             self.board.active_fields = self.board[row, col].moves_pos
             self.draw_field_selection()
         else:
-            pass
+            for move in self.board[row, col].moves_pos:
+                pass
 
     def move_process(self, row, col):
         if not self.board.active:
@@ -196,16 +196,7 @@ class GUI(tk.Frame):
                     self.board.active_piece = ()
                     self.board.change_color()
                     self.game_info()
-                    self.board.print_board()
-
-                    # for i in self.board.board:
-                    #     for j in i:
-                    #         if j is not None:
-                    #             print("{} ".format(j.blocked), end='')
-                    #         else:
-                    #             print("0", end='')
-                    #     print()
-
+                    #self.board.print_board()
 
         else:
             pass
@@ -471,9 +462,8 @@ class Man(Piece):
 
         if not next_move:
             self.moves_pos.append(possible_moves)
-
-        if not possible_moves:
-            self.captured_num = -1
+            if not possible_moves:
+                self.captured_num = -1
 
         for move in capture_moves:
             x = move[0]
