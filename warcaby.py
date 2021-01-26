@@ -35,7 +35,6 @@ class GUI(tk.Frame):
         self.piece_selection = None
         self.field_selections = []
         self.board = None
-        self.indices = []
         self.pack()
         self._draw_window()
         self._draw_pieces()
@@ -175,8 +174,13 @@ class GUI(tk.Frame):
         else:
             index = self.board[row, col].captured_num - self.board.max_moves
 
-            for move in self.board[row, col].moves_pos:
-                self.board.active_fields.append([move[index]])
+            if not self.board.indices:
+                for move in self.board[row, col].moves_pos:
+                    self.board.active_fields.append([move[index]])
+            else:
+                for i in self.board.indices:
+                    field_pos = self.board[row, col].moves_pos[i][index]
+                    self.board.active_fields.append([field_pos])
 
             self.draw_field_selection()
 
@@ -208,29 +212,42 @@ class GUI(tk.Frame):
             x, y = self.board.active_piece
             index = self.board[x, y].captured_num - self.board.max_moves
 
-            for i, lst in enumerate(self.board[x, y].moves_pos):
-                if lst[index] == (row, col):
-                    self.indices.append(i)
+            if not self.board.indices:
+                for i, lst in enumerate(self.board[x, y].moves_pos):
+                    if lst[index] == (row, col):
+                        self.board.indices.append(i)
+            else:
+                temp_indices = []
+                for i in self.board.indices:
+                    if self.board[x, y].moves_pos[i] == (row, col):
+                        temp_indices.append(i)
+                self.board.indices = temp_indices
 
-            if self.indices:
+            if self.board.indices:
                 self.remove_piece_selection()
                 self.remove_field_selection()
                 self.board.active_fields = []
                 self.field_selections = []
                 self.board.active = False
 
+                # Moving piece
+                piece_index = self.board[x, y].number
                 self.board.move_piece(row, col)
-                index = self.board[row, col].number
-                self.move_piece(self.pieces[index], self.board.active_piece, row, col)
+                self.move_piece(self.pieces[piece_index], self.board.active_piece, row, col)
+
+                # Capturing piece
+                captured_row, captured_col = self.board[row, col].captured_pieces[self.board.indices[0]][index]
+                piece_id = self.pieces[self.board[captured_row, captured_col].number]
+                self.board.capture(captured_row, captured_col)
+                self.remove_piece(piece_id)
 
                 self.board.max_moves -= 1
 
             if self.board.max_moves == 0:
                 self.board.active_piece = ()
+                self.board.indices = []
                 self.board.change_color()
                 self.game_info()
-
-
 
     def draw_piece_selection(self, row, col):
         self.piece_selection = self.board_canvas.create_oval(
@@ -270,6 +287,9 @@ class GUI(tk.Frame):
         y = (target_col - active_piece[1]) * 100
         self.board_canvas.move(piece_id, y, x)
 
+    def remove_piece(self, piece_id):
+        self.board_canvas.delete(piece_id)
+
     def create_king(self):
         pass
 
@@ -303,14 +323,27 @@ class Board:
         self.active_fields = []
         self.light_pieces = []
         self.dark_pieces = []
+        self.indices = []
         self.max_moves = 0
-        self.current_color = "light"
+        self.current_color = ""
+        self.light_left = 0
+        self.dark_left = 0
         self.init_board()
 
     def __getitem__(self, pos):
         return self.board[pos[0]][pos[1]]
 
     def init_board(self):
+        self.active = False
+        self.active_piece = []
+        self.active_fields = []
+        self.light_pieces = []
+        self.dark_pieces = []
+        self.indices = []
+        self.max_moves = 0
+        self.current_color = "light"
+        self.light_left = 20
+        self.dark_left = 20
         self.create_board()
         self.possible_captures()
         #self.block_pieces()
@@ -408,6 +441,22 @@ class Board:
 
         self.unblock_pieces()
         self.possible_captures()
+
+    def capture(self, row, col):
+        number = self.board[row][col].number
+        self.board[row][col] = None
+
+        if self.current_color == "light":
+            pieces = self.dark_pieces
+            self.dark_left -= 1
+        else:
+            pieces = self.light_pieces
+            self.light_left -= 1
+
+        for i, piece in enumerate(pieces):
+            if piece.number == number:
+                pieces.pop(i)
+                break
 
     def game_state(self):
         pass
