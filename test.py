@@ -141,6 +141,30 @@ class TestBoard(unittest.TestCase):
     def test_possible_captures(self):
         for piece in self.board.light_pieces:
             self.assertEqual(piece.captured_pieces, [])
+
+    def test_possible_moves2(self):
+        self.board2.change_color()
+
+        values = [
+            [(5, 6), [[(4, 5), (4, 7)]]],
+            [(5, 4), [[(4, 3), (4, 5)]]],
+            [(5, 2), [[(4, 1), (4, 3)]]],
+            [(5, 0), [[(4, 1)]]],
+            [(6, 1), []],
+            [(6, 3), []],
+            [(6, 5), []],
+            [(6, 7), []],
+            [(7, 0), []],
+            [(7, 2), []],
+            [(7, 4), []],
+            [(7, 6), []],
+        ]
+
+        for lst in values:
+            row, col = lst[0]
+            self.assertEqual(self.board2[row, col].moves_pos, lst[1])
+
+    def test_possible_captures2(self):
         for piece in self.board.dark_pieces:
             self.assertEqual(piece.captured_pieces, [])
 

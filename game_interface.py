@@ -43,10 +43,10 @@ class GameInterface(tk.Frame):
         self.king_symbols = []
         self.board = None
         self.pack()
-        self._draw_window()
-        self._draw_pieces()
+        self.draw_window()
+        self.draw_pieces()
 
-    def _draw_window(self):
+    def draw_window(self):
         self['bg'] = LIGHT_FIELD
         self.board_canvas = tk.Canvas(
             master=self, width=CANVAS_HEIGHT_PX, height=CANVAS_WIDTH_PX,
@@ -114,7 +114,7 @@ class GameInterface(tk.Frame):
             font=("", COUNTER_SIZE_PX), fg=WHITE, bg=DARK_FIELD)
         self.game_info_color.place(x=715, y=5)
 
-    def _draw_pieces(self):
+    def draw_pieces(self):
         if self.pieces:
             for piece in self.pieces:
                 self.board_canvas.delete(piece)
@@ -218,10 +218,16 @@ class GameInterface(tk.Frame):
                     else:
                         self.board.no_capture_dark -= 1
 
-                    if row == 0 or row == 7:
-                        if isinstance(self.board[row, col], Man):
-                            self.board.make_king(row, col)
-                            self.create_king(row, col)
+                    if row == 0:
+                        if self.board.current_color == "light":
+                            if isinstance(self.board[row, col], Man):
+                                self.board.make_king(row, col)
+                                self.create_king(row, col)
+                    elif row == 7:
+                        if self.board.current_color == "dark":
+                            if isinstance(self.board[row, col], Man):
+                                self.board.make_king(row, col)
+                                self.create_king(row, col)
 
                     self.board.active_piece = ()
                     self.board.change_color()
@@ -267,10 +273,16 @@ class GameInterface(tk.Frame):
                 self.pieces_left()
 
             if self.board.max_moves == 0:
-                if row == 0 or row == 7:
-                    if isinstance(self.board[row, col], Man):
-                        self.board.make_king(row, col)
-                        self.create_king(row, col)
+                if row == 0:
+                    if self.board.current_color == "light":
+                        if isinstance(self.board[row, col], Man):
+                            self.board.make_king(row, col)
+                            self.create_king(row, col)
+                elif row == 7:
+                    if self.board.current_color == "dark":
+                        if isinstance(self.board[row, col], Man):
+                            self.board.make_king(row, col)
+                            self.create_king(row, col)
 
                 self.board.active_piece = ()
                 self.board.indices = []
@@ -349,7 +361,7 @@ class GameInterface(tk.Frame):
         self.piece_selection = None
         #self.field_selections = []
         self.board = Board()
-        self._draw_pieces()
+        self.draw_pieces()
         self.bind_event()
         self.pieces_left()
         self.game_info_text['text'] = INFO_TEXT
