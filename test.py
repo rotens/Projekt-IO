@@ -12,7 +12,8 @@ class TestBoard(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.board = Board()
         self.board2 = Board()
-        self.board3 = Board()
+        self.board3 = None
+        self.board4 = None
 
     def test_current_color(self):
         self.assertEqual(self.board.current_color, "light")
@@ -146,18 +147,18 @@ class TestBoard(unittest.TestCase):
         self.board2.change_color()
 
         values = [
-            [(5, 6), [[(4, 5), (4, 7)]]],
-            [(5, 4), [[(4, 3), (4, 5)]]],
-            [(5, 2), [[(4, 1), (4, 3)]]],
-            [(5, 0), [[(4, 1)]]],
-            [(6, 1), []],
-            [(6, 3), []],
-            [(6, 5), []],
-            [(6, 7), []],
-            [(7, 0), []],
-            [(7, 2), []],
-            [(7, 4), []],
-            [(7, 6), []],
+            [(2, 7), [[(3, 6)]]],
+            [(2, 5), [[(3, 4), (3, 6)]]],
+            [(2, 3), [[(3, 2), (3, 4)]]],
+            [(2, 1), [[(3, 0), (3, 2)]]],
+            [(1, 6), []],
+            [(1, 4), []],
+            [(1, 2), []],
+            [(1, 0), []],
+            [(0, 7), []],
+            [(0, 5), []],
+            [(0, 3), []],
+            [(0, 1), []],
         ]
 
         for lst in values:
@@ -167,6 +168,58 @@ class TestBoard(unittest.TestCase):
     def test_possible_captures2(self):
         for piece in self.board.dark_pieces:
             self.assertEqual(piece.captured_pieces, [])
+
+    def test_possible_moves3(self):
+        self.board3 = Board()
+        self.board3.active_piece = (5, 6)
+        self.board3.move_piece(4, 5)
+        self.board3.active_piece = (5, 4)
+        self.board3.move_piece(4, 3)
+        self.board3.change_color()
+        self.board3.active_piece = (2, 1)
+        self.board3.move_piece(3, 2)
+        self.board3.possible_captures()
+
+        self.assertEqual(self.board3[3, 2].moves_pos, [[(5, 4), (3, 6)]])
+
+    def test_possible_captures3(self):
+        self.board3 = Board()
+        self.board3.active_piece = (5, 6)
+        self.board3.move_piece(4, 5)
+        self.board3.active_piece = (5, 4)
+        self.board3.move_piece(4, 3)
+        self.board3.change_color()
+        self.board3.active_piece = (2, 1)
+        self.board3.move_piece(3, 2)
+        self.board3.possible_captures()
+
+        self.assertEqual(self.board3[3, 2].captured_pieces, [[(4, 3), (4, 5)]])
+
+    def test_possible_moves4(self):
+        self.board4 = Board()
+        self.board4.change_color()
+        self.board4.active_piece = (2, 1)
+        self.board4.move_piece(4, 3)
+        self.board4.active_piece = (2, 5)
+        self.board4.move_piece(3, 4)
+        self.board4.active_piece = (1, 4)
+        self.board4.move_piece(2, 5)
+        self.board4.change_color()
+
+        self.assertEqual(self.board4[5, 4].moves_pos, [[(3, 2), (1, 4), (3, 6)]])
+
+    def test_possible_captures4(self):
+        self.board4 = Board()
+        self.board4.change_color()
+        self.board4.active_piece = (2, 1)
+        self.board4.move_piece(4, 3)
+        self.board4.active_piece = (2, 5)
+        self.board4.move_piece(3, 4)
+        self.board4.active_piece = (1, 4)
+        self.board4.move_piece(2, 5)
+        self.board4.change_color()
+
+        self.assertEqual(self.board4[5, 4].captured_pieces, [[(4, 3), (2, 3), (2, 5)]])
 
     def test_move_piece(self):
         number = self.board[5, 2].number

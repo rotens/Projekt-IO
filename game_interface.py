@@ -218,16 +218,14 @@ class GameInterface(tk.Frame):
                     else:
                         self.board.no_capture_dark -= 1
 
-                    if row == 0:
-                        if self.board.current_color == "light":
-                            if isinstance(self.board[row, col], Man):
-                                self.board.make_king(row, col)
-                                self.create_king(row, col)
-                    elif row == 7:
-                        if self.board.current_color == "dark":
-                            if isinstance(self.board[row, col], Man):
-                                self.board.make_king(row, col)
-                                self.create_king(row, col)
+                    if row == 0 and self.board.current_color == "light":
+                        if isinstance(self.board[row, col], Man):
+                            self.board.make_king(row, col)
+                            self.create_king(row, col)
+                    elif row == 7 and self.board.current_color == "dark":
+                        if isinstance(self.board[row, col], Man):
+                            self.board.make_king(row, col)
+                            self.create_king(row, col)
 
                     self.board.active_piece = ()
                     self.board.change_color()
@@ -273,16 +271,14 @@ class GameInterface(tk.Frame):
                 self.pieces_left()
 
             if self.board.max_moves == 0:
-                if row == 0:
-                    if self.board.current_color == "light":
-                        if isinstance(self.board[row, col], Man):
-                            self.board.make_king(row, col)
-                            self.create_king(row, col)
-                elif row == 7:
-                    if self.board.current_color == "dark":
-                        if isinstance(self.board[row, col], Man):
-                            self.board.make_king(row, col)
-                            self.create_king(row, col)
+                if row == 0 and self.board.current_color == "light":
+                    if isinstance(self.board[row, col], Man):
+                        self.board.make_king(row, col)
+                        self.create_king(row, col)
+                elif row == 7 and self.board.current_color == "dark":
+                    if isinstance(self.board[row, col], Man):
+                        self.board.make_king(row, col)
+                        self.create_king(row, col)
 
                 self.board.active_piece = ()
                 self.board.indices = []
