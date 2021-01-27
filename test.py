@@ -14,6 +14,7 @@ class TestBoard(unittest.TestCase):
         self.board2 = Board()
         self.board3 = None
         self.board4 = None
+        self.board5 = None
 
     def test_current_color(self):
         self.assertEqual(self.board.current_color, "light")
@@ -220,6 +221,26 @@ class TestBoard(unittest.TestCase):
         self.board4.change_color()
 
         self.assertEqual(self.board4[5, 4].captured_pieces, [[(4, 3), (2, 3), (2, 5)]])
+
+    def test_possible_moves5(self):
+        self.board5 = Board()
+        self.board5.make_king(5, 6)
+        self.board5.change_color()
+        self.board5.active_piece = (2, 3)
+        self.board5.move_piece(3, 4)
+        self.board5.change_color()
+
+        self.assertEqual(self.board5[5, 6].moves_pos, [[(2, 3)]])
+
+    def test_possible_captures5(self):
+        self.board5 = Board()
+        self.board5.make_king(5, 6)
+        self.board5.change_color()
+        self.board5.active_piece = (2, 3)
+        self.board5.move_piece(3, 4)
+        self.board5.change_color()
+
+        self.assertEqual(self.board5[5, 6].captured_pieces, [[(3, 4)]])
 
     def test_move_piece(self):
         number = self.board[5, 2].number

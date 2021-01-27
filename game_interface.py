@@ -169,8 +169,8 @@ class GameInterface(tk.Frame):
             self.board.active_piece = (row, col)
             self.draw_piece_selection(row, col)
             self.selection_process(row, col)
-            print("Move {}".format(self.board[row, col].moves_pos))
-            print("Capture {}".format(self.board[row, col].captured_pieces))
+            # print("Move {}".format(self.board[row, col].moves_pos))
+            # print("Capture {}".format(self.board[row, col].captured_pieces))
 
         else:
             self.move_process(row, col)
