@@ -282,6 +282,8 @@ class GameInterface(tk.Frame):
 
                 self.board.active_piece = ()
                 self.board.indices = []
+                self.board.no_capture_light = 15
+                self.board.no_capture_dark = 15
                 self.board.change_color()
                 self.game_state()
 
