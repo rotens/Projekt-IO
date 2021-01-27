@@ -71,7 +71,8 @@ class Man(Piece):
                         [(self.row + x, self.col + y)], move, 1)
 
         if not next_move:
-            self.moves_pos.append(possible_moves)
+            if possible_moves:
+                self.moves_pos.append(possible_moves)
             if not possible_moves:
                 self.captured_num = -1
 
