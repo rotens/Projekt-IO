@@ -148,13 +148,17 @@ class GameInterface(tk.Frame):
         if event.y < 50 or event.y > 849:
             return
 
-        row, col = self.translate(event.x, event.y)
+        row = (event.y - 50) // 100
+        col = (event.x - 50) // 100
 
         if self.board[row, col] is not None:
             if self.board[row, col].blocked:
                 return
 
             if self.board.active:
+                if (row, col) == self.board.active_piece:
+                    return
+
                 if not self.board[row, col].active:
                     self.board.deactivate_current_piece()
                     self.remove_piece_selection()
@@ -170,12 +174,6 @@ class GameInterface(tk.Frame):
 
         else:
             self.move_process(row, col)
-
-    @staticmethod
-    def translate(event_x, event_y):
-        row = (event_y - 50) // 100
-        col = (event_x - 50) // 100
-        return row, col
 
     def selection_process(self, row, col):
         if self.board.max_moves == 0:
@@ -207,7 +205,7 @@ class GameInterface(tk.Frame):
                     self.remove_piece_selection()
                     self.remove_field_selection()
                     self.board.active_fields = []
-                    self.field_selections = []
+                    #self.field_selections = []
                     self.board.active = False
                     self.board.deactivate_current_piece()
 
@@ -249,7 +247,7 @@ class GameInterface(tk.Frame):
                 self.remove_piece_selection()
                 self.remove_field_selection()
                 self.board.active_fields = []
-                self.field_selections = []
+                #self.field_selections = []
                 self.board.active = False
                 self.board.deactivate_current_piece()
 
@@ -305,6 +303,7 @@ class GameInterface(tk.Frame):
     def remove_field_selection(self):
         for selection in self.field_selections:
             self.board_canvas.delete(selection)
+        self.field_selections = []
 
     def bind_event(self):
         self.board_canvas.bind('<ButtonPress-1>', self.select)
@@ -348,7 +347,7 @@ class GameInterface(tk.Frame):
         self.remove_piece_selection()
         self.remove_field_selection()
         self.piece_selection = None
-        self.field_selections = []
+        #self.field_selections = []
         self.board = Board()
         self._draw_pieces()
         self.bind_event()

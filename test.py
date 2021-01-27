@@ -1,13 +1,18 @@
+import tkinter as tk
 import unittest
 
+
 from board import Board
-from pieces import Man, King
+from game_interface import GameInterface
+from pieces import King
 
 
 class TestBoard(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.board = Board()
+        self.board2 = Board()
+        self.board3 = Board()
 
     def test_current_color(self):
         self.assertEqual(self.board.current_color, "light")
@@ -174,7 +179,56 @@ class TestBoard(unittest.TestCase):
 class TestGameInterface(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        pass
+        root = tk.Tk()
+        root.resizable(False, False)
+        self.gi = GameInterface(root)
+        self.gi.start_game()
+
+    def test_remove_symbols(self):
+        self.gi.king_symbols.append("T1")
+        self.gi.remove_symbols()
+        self.assertEqual(self.gi.king_symbols, [])
+
+    def test_remove_field_selections(self):
+        self.gi.field_selections.append([(2, 3)])
+        self.gi.remove_field_selection()
+        self.assertEqual(self.gi.field_selections, [])
+
+    def test_game_info_light(self):
+        self.gi.board.current_color = "light"
+        self.gi.game_info()
+        self.assertEqual(self.gi.game_info_color["text"], "białych")
+        self.assertEqual(self.gi.game_info_color["fg"], "#FFFFFF")
+
+    def test_game_info_dark(self):
+        self.gi.board.current_color = "dark"
+        self.gi.game_info()
+        self.assertEqual(self.gi.game_info_color["text"], "czarnych")
+        self.assertEqual(self.gi.game_info_color["fg"], "#000000")
+
+    def test_create_king(self):
+        self.gi.create_king(5, 6)
+        self.assertIsNot(self.gi.king_symbols, [])
+
+    def test_game_state(self):
+        self.gi.board.dark_left = 0
+        self.gi.board.light_left = 2
+        self.gi.game_state()
+        self.assertEqual(self.gi.game_info_text["text"], "Wygrały")
+        self.assertEqual(self.gi.game_info_color["text"], "białe!")
+
+        self.gi.board.dark_left = 2
+        self.gi.board.light_left = 0
+        self.gi.game_state()
+        self.assertEqual(self.gi.game_info_text["text"], "Wygrały")
+        self.assertEqual(self.gi.game_info_color["text"], "czarne!")
+
+        self.gi.board.light_left = 2
+        self.gi.board.no_capture_light = 0
+        self.gi.board.no_capture_dark = 0
+        self.gi.game_state()
+        self.assertEqual(self.gi.game_info_text["text"], "Remis!")
+        self.assertEqual(self.gi.game_info_color["text"], "")
 
 
 if __name__ == "__main__":
